@@ -1,0 +1,15 @@
+[Unit]
+Description=Kong API Gateway
+After=network.target
+
+[Service]
+Type=simple
+User=root  # Replace with the user you want Kong to run as
+Group=root  # Replace with the group you want Kong to run as
+Environment="PATH=/usr/local/kong/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/usr/local/kong/bin/kong start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

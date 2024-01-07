@@ -1,0 +1,93 @@
+---
+- name: Install necessary dependencies
+  become: true
+  apt:
+    name:
+      - git
+      - curl
+      - openssl
+      - libpcre3
+      - libpcre3-dev
+      - zlib1g-dev
+      - unzip
+      - make
+      - libyaml-dev
+      - gcc
+      - libssl-dev
+      - libreadline-dev
+
+- name: Download LuaRocks source
+  become: true
+  get_url:
+    url: "https://luarocks.github.io/luarocks/releases/luarocks-3.8.0.tar.gz"  # Replace with the appropriate version URL
+    dest: /tmp/luarocks.tar.gz
+
+- name: Extract LuaRocks source
+  become: true
+  unarchive:
+    src: /tmp/luarocks.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- name: Configure LuaRocks
+  become: true
+  command: ./configure
+  args:
+    chdir: /tmp/luarocks-3.8.0  
+
+- name: Make Build 
+  become: true
+  command: make build
+  args:
+    chdir: /tmp/luarocks-3.8.0  
+
+- name: Make Install LuaRocks
+  become: true
+  command: make install
+  args:
+    chdir: /tmp/luarocks-3.8.0  
+- name: Create Kong directory
+  become: true
+  command: |
+    mkdir -p /opt/kong
+
+- name: Remove Kong build artifacts
+  become: true
+  command: rm -rf /opt/kong  
+- name: Clone Kong repository
+  become: true
+  git:
+    repo: https://github.com/Kong/kong.git
+    dest: /opt/kong
+    version: 2.8.0
+- name: create user
+  become: true
+  user:
+    name: kong
+    shell: /bin/bash 
+    home: /usr/local/kong
+- name: Set correct permissions for Kong installation directory
+  become: true
+  file:
+    path: /usr/local/kong  # Adjust this path if necessary
+    state: directory
+    owner: kong  # Replace with appropriate user
+    group: kong  # Replace with appropriate group
+    mode: '0755'
+
+- name: Build Kong from source
+  become: true
+  command: make install
+  args:
+    chdir: /opt/kong
+    warn: true
+    executable: /bin/bash
+    _uses_shell: true
+    _raw_params: "-xv"
+- name: Set environment variables for Kong
+  become: true
+  lineinfile:
+    dest: /etc/environment
+    line: 'KONG_PATH="/usr/local/kong"'
+    state: present
+
