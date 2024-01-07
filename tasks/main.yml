@@ -56,10 +56,19 @@
   command: rm -rf /opt/kong  
 - name: Clone Kong repository
   become: true
-  git:
-    repo: https://github.com/Kong/kong.git
-    dest: /opt/kong
-    version: 2.8.0
+  get_url:
+    url: https://github.com/Kong/kong/archive/2.8.0.tar.gz
+    dest: /opt
+    
+- name: extract file
+  become: true
+  unarchive: 
+    src: /opt/kong-2.8.0.tar.gz
+    dest: /opt
+    remote_src: yes
+- name: rename dir
+  become: true
+  command: mv /opt/kong-2.8.0 /opt/kong  
 - name: create user
   become: true
   user:
